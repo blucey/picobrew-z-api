@@ -4,6 +4,18 @@ The Z uses JSON in requests and responses.  Responses appear to always echo back
 
 The token id used in URLs is simply the mac address of the Z without any delimiters and with all letters being lowed-cased.
 
+The Authentication header type of Bearer is provided by the Z. It appears the Z persists this token after registration.
+
+## HTTP Header Values on Request
+
+* Authorization: Bearer <unique>
+* Content-Type: application/json (for PUT/POST)
+* Host: www.picobrew.com
+* Cache-Control: no-cache
+* Connection: close
+
+No user agent or encoding headers appear to be sent.
+
 ## Boot Up Synchronization
 
 This message is sent when the Z initially boots and is used by the device to determine if there are updates which need to be downloaded or brewing sessions which need to be resumed.  Note that if the user receives an indication that a session was in progress but chooses not to resume it, no further message is sent by the Z to the backend.
@@ -20,7 +32,7 @@ Query String:
 
 JSON Request Body:
 
-* BoilerType: Possible values unknown, only seen 1 (small boiler) so far.
+* BoilerType: Possible values unknown, only seen 1 (small boiler), 0 (big boiler) so far.
 * CurrentFirmware: The current version of the firmware, delimited by periods.
 
 Example:
@@ -34,13 +46,13 @@ Example:
 
 ##### Response
 
-* Alias:  Appears to always be ZSeries.
+* Alias:  Default is ZSeries, can be renamed by user.
 * IsRegistered:  Appears to always be true.
 * IsUpdated:  If false, indicates that the UpdateAddress will contain a firmware update address.
 * ProgramUri:  Appears to always be null.
 * RegistrationToken:  Appears to always be -1.
 * SessionStats
-	* DirtySessionsSinceClean: The number of sessions since the last cleaning cycle.
+   * DirtySessionsSinceClean: The number of sessions since the last cleaning cycle.
    * LastSessionType:  The type of the last session.  (See begin session for known values.)
    * ResumableSessionID:  The ID of the session that was in progress when the machine lost power.
 * TokenExpired:  Appears to always be false.
@@ -119,7 +131,7 @@ Example 3:  (A session is available to be resumed)
 
 ## Fetch Recipe Summary
 
-Fetches a list of all of the recipes from the server.  It appears that "pagination" of the recipes is supported through setting a value for offset, but this does not actually appear to be used and the number of recipes that can be synced to the Z does not exceed 20.
+Fetches a list of all of the recipes from the server.  It appears that "pagination" of the recipes is supported through setting a value for offset. This appears to only be used when the Kind parameter is not 1 (user defined recipes because the recipes that can be synced to the Z does not exceed 20).
 
 ##### Request
 
@@ -131,9 +143,14 @@ Query String:
 
 JSON Request Body:
 
-* Kind:  Appears to always be 1.
+* Kind:  List search type 
+    * 1 = user defined recipes
+    * 2 = appears to be unbrewed paks I've purchased?
+    * 3 = browse/search entire zpak list, search provides SearchString in request.
+    * 4 = zpak id search. Other values have not been observed yet.
 * MaxCount:  The requested limit for the number of recipes to be returned.  Appears to always be 20.
-* Offset:  Suspected to be the number of recipes to skip for pagination purposes, but appears to always be 0.  It's unclear if the Z actually supports any other values. 
+* Offset:  Suspected to be the number of recipes to skip for pagination purposes. Seen in 'Kind:3' and 'Kind:4'. Pagination does not appear to be supported in 'Kind:1' 
+* SearchString: An optional string for search. May only be supported in Kind:4
 
 Example:
 
@@ -141,20 +158,20 @@ Example:
 {
     "Kind": 1,
     "MaxCount": 20,
-    "Offset": 0
+    "Offset": 0,
 }
 ```
 
 ##### Response
 
 * Recipes: An array of recipes where each recipe is:
-    * Abv:  Appears to always be -1.
+    * Abv:  Appears to always be -1, except for Kind:2 where values have been observed.
     * ID: Unique numeric identifier for the recipe.
-    * Ibu:  Appears to always be -1.
-    * Name:  The name of the recipe.
-    * Kind:  Appears to always be zero, regardless of whether it is a beer, coffee, or sous vide recipe.
+    * Ibu:  Appears to always be -1, except for Kind:2 where values have been observed.
+    * Name:  The name of the recipe. Further testing needed to determine max length.
+    * Kind:  Appears to be zero, regardless of whether it is a beer, coffee, or sous vide recipe. Appears as Recipies.Kind = 1 in Kind:2 (Pak search)
     * Uri:  Appears to always be null.
-* SearchString:  Appears to always be null.
+* SearchString:  Same as sent in Request ( see Kind:3 )
 * TotalResults:  A number between 0 and 20.  It's unclear how the Picobrew will behave if the number is greater than 20.  My best guess is that a second Fetch Recipe query will be sent with a value of 20 for the offset and so on.
 
 Example:
@@ -195,6 +212,120 @@ Example:
 }
 ```
 
+##### Request (ZPak Search)
+
+Example of a ZPak Search for "star"
+```
+{
+    "Kind": 3,
+    "MaxCount": 20,
+    "Offset": 0,
+    "SearchString": "star"
+}
+
+```
+
+##### Response (ZPak Search)
+
+```
+{
+    "Kind": 3,
+    "Offset": 0,
+    "SearchString": "star",
+    "MaxCount": 0,
+    "TotalResults": 1,
+    "Recipes": [
+        {
+            "ID": 139605,
+            "Name": "Stargazer Z Kit",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        }
+    ]
+}
+```
+
+##### Request (ZPak Browse, Page 2 Page 2 Results)
+
+```
+{
+    "Kind": 3,
+    "MaxCount": 20,
+    "Offset": 20
+}
+```
+
+###### Response( ZPak Browse, Page 2 Results)
+```
+{
+    "Kind": 3,
+    "Offset": 20,
+    "SearchString": null,
+    "MaxCount": 0,
+    "TotalResults": 27,
+    "Recipes": [
+        {
+            "ID": 139601,
+            "Name": "Sandy Beaches Z Kit",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        },
+        {
+            "ID": 139598,
+            "Name": "Shankill Stout Z Kit",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        },
+        {
+            "ID": 140586,
+            "Name": "Smokey Lonesome ZKit",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        },
+        {
+            "ID": 139605,
+            "Name": "Stargazer Z Kit",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        },
+        {
+            "ID": 141309,
+            "Name": "Stefanator Doppel",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        },
+        {
+            "ID": 141320,
+            "Name": "The Citra Galaxy",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        },
+        {
+            "ID": 140579,
+            "Name": "Tweaties Z Kit",
+            "Kind": 0,
+            "Uri": null,
+            "Abv": -1,
+            "Ibu": -1
+        }
+    ]
+}
+```
+
 ## Fetch Recipe Details
 
 After a recipe is selected, the Z must get all of the steps for the recipe.  This request is used to fetch that information.
@@ -211,7 +342,7 @@ Query String:
 ##### Response
 
 * ID: The unique recipe identifier
-* Name:  The name of the recipe
+* Name:  The name of the recipe. Appears to truncate to a length < 20
 * StartWater:  The amount of water (in liters) that the keg should be filled with at the start of the brewing session.
 * Steps:  An array of step objects.
     * Drain:  The amount of time (in minutes) that a drain cycle should be run for at the completion of the step.  This time is not included in the amount of time specified in the Time field.
@@ -223,7 +354,7 @@ Query String:
         * 4 = Adjunct 3
         * 5 = Adjunct 4
         * 6 = Special value to indicate that the machine should pause for the user.
-    * Name:  The name of the step
+    * Name:  The name of the step, this string appears to truncate to a maximum length < 20
     * Temp:  The target temperature for the step, in degrees fahrenheit.
     * Time:  The amount of time to spend at the target temperature during this step.
 * TypeCode:  The type of recipe, possible values:
@@ -555,7 +686,7 @@ Example: (Begin Session)
 * DrainTemp:  The value, in Celsius, observed by the drain pump temperature sensor.
 * ErrorCode:  
 * KegPumpOn:  1 if the keg pump is on, otherwise 0.  (This is the pump FROM the keg.)
-* PauseReason:
+* PauseReason: Appears to be 1 for Preparing machine and pre-brew tests, other values are unknown.
 * SecondsRemaining:  The number of seconds remaining for the current program session.
 * StepName:  The name of the current step.
 * TargetTemp:  The target temperature of the current step.
