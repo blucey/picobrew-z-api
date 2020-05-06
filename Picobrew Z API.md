@@ -1,6 +1,6 @@
 # Picobrew Z API
 
-The Z uses JSON in requests and responses.  Responses appear to always echo back the full request plus some additional fields.  In the documentation below, only the additional fields are specified for the responses, it is assumed that all requests fields are also present.
+The Z uses JSON in requests and responses.  Responses appear to (almost) always echo back the full request plus some additional fields.  In the documentation below, only the additional fields are specified for the responses, it is assumed that all requests fields are also present unless otherwise noted.
 
 The token id used in URLs is simply the mac address of the Z without any delimiters and with all letters being lowed-cased.
 
@@ -32,7 +32,9 @@ Query String:
 
 JSON Request Body:
 
-* BoilerType: Possible values unknown, only seen 1 (small boiler), 0 (big boiler) so far.
+* BoilerType:  Known values are:
+    * 0 - Big Boiler
+    * 1 - Small Boiler
 * CurrentFirmware: The current version of the firmware, delimited by periods.
 
 Example:
