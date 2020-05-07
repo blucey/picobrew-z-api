@@ -20,8 +20,6 @@ No user agent or encoding headers appear to be sent.
 
 This message is sent when the Z initially boots and is used by the device to determine if there are updates which need to be downloaded or brewing sessions which need to be resumed.  Note that if the user receives an indication that a session was in progress but chooses not to resume it, no further message is sent by the Z to the backend.
 
-##### URL
-
 ##### Request
 
 `PUT https://www.picobrew.com/Vendors/input.cshtml?type=ZState&token=<token> HTTP/1.1`
@@ -259,7 +257,7 @@ Example of a ZPak Search for "star"
 }
 ```
 
-###### Response( ZPak Browse, Page 2 Results)
+###### Response (ZPak Browse, Page 2 Results)
 ```
 {
     "Kind": 3,
@@ -498,6 +496,8 @@ Example:
 
 When beginning a new program session, the session_id is not included in the query string.  This value is present when completing a program session and is the only observed request difference between a begin session and complete session request.
 
+JSON Request Body:
+
 * DurationSec
 * FirmwareVersion
 * GroupSession
@@ -682,6 +682,8 @@ Example: (Begin Session)
 ##### Request
 
 `POST https://www.picobrew.com/Vendors/input.cshtml?type=ZSessionLog&token=<token> HTTP/1.1`
+
+JSON Request Body:
 
 * AmbientTemp:  The value, in Celsius, observed by the ambient temperature sensor.
 * DrainPumpOn:  1 if the drain pump is on, otherwise 0.  (This is the pump TO the keg.)
