@@ -114,18 +114,18 @@ Example 3:  (A session is available to be resumed)
 {
     "Alias": "ZSeries",
     "BoilerType": 1,
-    "CurrentFirmware": "0.0.87",
+    "CurrentFirmware": "0.0.116",
     "IsRegistered": true,
-    "IsUpdated": false,
+    "IsUpdated": true,
     "ProgramUri": null,
     "RegistrationToken": "-1",
     "SessionStats": {
-        "DirtySessionsSinceClean": 0,
-        "LastSessionType": 1,
-        "ResumableSessionID": -1
+        "DirtySessionsSinceClean": 2,
+        "LastSessionType": 6,
+        "ResumableSessionID": 60xxx
     },
     "TokenExpired": false,
-    "UpdateAddress": "http://picobrewcontent.blob.core.windows.net/firmware/zseries/zseries_0_0_116.bin",
+    "UpdateAddress": "-1",
     "UpdateToFirmware": null,
     "ZBackendError": 0
 }
