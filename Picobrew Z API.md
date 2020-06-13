@@ -490,12 +490,15 @@ Example:
 
 ## Begin/Complete a Program Session
 
-##### Request
+##### Request(s)
 
-TODO ... is the begin a `POST` and the complete a `PUT`, but definitely create/begin is a `POST` from today's session on my device
-`POST https://www.picobrew.com/Vendors/input.cshtml?type=ZSession&token=<token>&id=<session_id> HTTP/1.1`
+`POST https://www.picobrew.com/Vendors/input.cshtml?type=ZSession&token=<token> HTTP/1.1`
 
-When beginning a new program session, the session_id is not included in the query string.  This value is present when completing a program session and is the only observed request difference between a begin session and complete session request.
+or
+
+`PUT https://www.picobrew.com/Vendors/input.cshtml?type=ZSession&token=<token>&id=<session_id> HTTP/1.1`
+
+When beginning a new program session (POST request above), the session_id is not included in the query string.  This value is present when completing a program session (PUT request above) and is the only observed request difference between a begin session and complete session request. All else is consistent between these two requests and respected responses.
 
 JSON Request Body:
 
